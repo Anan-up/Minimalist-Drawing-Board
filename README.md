@@ -1,4 +1,4 @@
-[English](README.md) | [简体中文](README_Simplified_Chinese.md) | [繁体中文](README_Classical_Chinese.md)
+[English](README.md) | [简体中文](README_Simplified_Chinese.md) | [繁體中文](README_Classical_Chinese.md)
 
 A fully-featured **minimalist drawing board** web application built on Canvas, with the core capabilities of professional drawing tools such as layers, object editing, and history.
 
