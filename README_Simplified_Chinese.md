@@ -1,4 +1,4 @@
-[English](https://github.com/Anan-up/Minimalist-Drawing-Board/blob/main/README.md) | [简体中文](https://github.com/Anan-up/Minimalist-Drawing-Board/blob/main/README_Simplified_Chinese.md) | [繁体中文](https://github.com/Anan-up/Minimalist-Drawing-Board/blob/main/README_Classical_Chinese.md)
+[English](https://github.com/Anan-up/Minimalist-Drawing-Board/blob/main/README.md) | [简体中文](https://github.com/Anan-up/Minimalist-Drawing-Board/blob/main/README_Simplified_Chinese.md) | [繁體中文](https://github.com/Anan-up/Minimalist-Drawing-Board/blob/main/README_Classical_Chinese.md)
 
 这是一个功能完整的**极简画板**网页应用，基于 Canvas 构建，具备图层、对象编辑、历史记录等专业绘图工具的核心能力。
 
