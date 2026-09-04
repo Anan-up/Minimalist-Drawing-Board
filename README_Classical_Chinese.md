@@ -1,4 +1,4 @@
-[English](README.md) | [簡體中文](README_Simplified_Chinese.md) | [繁體中文](README_Classical_Chinese.md)
+[English](README.md) | [简体中文](README_Simplified_Chinese.md) | [繁體中文](README_Classical_Chinese.md)
 
 頃有**極簡畫板**之網頁應用，基於Canvas而成，具圖層、對象編輯、歷史回溯等專業繪事之要。
 
