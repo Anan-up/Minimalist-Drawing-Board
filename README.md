@@ -1,121 +1,127 @@
 [English](README.md) | [简体中文](README_Simplified_Chinese.md) | [繁體中文](README_Classical_Chinese.md)
 
-A fully-featured **minimalist drawing board** web application built on Canvas, with the core capabilities of professional drawing tools such as layers, object editing, and history.
+# Minimal Drawing Board
+
+A **zero-dependency, single-file** web drawing board. Double-click `index.html` to use it in your browser — no installation, no internet connection, no build step required.
+
+Clean minimalist white style, supporting various brush tools, layers, image and text object editing, customizable canvas, and multi-format export.
 
 ---
 
-## I. Overview
-- A lightweight drawing/design tool that runs in the browser with no installation required.
-- Supports **mixed editing of vector text and bitmap images**, with **non-destructive layer management**.
-- Suitable for quick sketches, annotations, simple graphic design, and image compositing.
+## Quick Start
+
+| Method | Action |
+| ------ | ------ |
+| Single file | Simply double-click `index.html` and open it with any modern browser |
+| Zip package | Unzip `MinimalDrawingBoard.zip` and open the `index.html` inside |
+
+> Environment requirements: Modern browsers such as Chrome / Edge / Firefox / Safari (Canvas 2D support required).
 
 ---
 
-## II. Core Feature Modules
+## Features
 
-### 1. Toolset (10 drawing/editing tools)
-| Tool | Function |
-|------|----------|
-| Select/Move | Select and manipulate existing objects (text, images) |
-| Pen, Brush, Pencil | Free drawing; brush has a soft edge (shadow), pencil has a hard edge |
-| Eraser | Erase pixels (uses the `destination-out` composite mode, supports opacity) |
-| Line, Rectangle, Ellipse | Draw geometric shapes (drag and hold) |
-| Arrow | A straight line with an arrowhead at the end |
-| Text | Click the canvas to place a text box; supports instant input, color change, and font-size change |
+### Brush Tools
 
-### 2. Layer System
-- Supports **multi-layer stacking**, where each layer independently stores its pixels and objects (text/images).
-- Layer operations: **create, delete, rename (double-click), show/hide, and drag to reorder**.
-- Each layer's thumbnail is shown in the right-side panel, listing its contained text and image objects (clickable to select).
+* **Select / Move**: Select text and image objects, supporting move, scale, and rotate
+* **Pen**, **Brush (soft edge)**, **Pencil**, **Eraser**
+* **Line**, **Rectangle**, **Ellipse**, **Arrow**
+* **Text**
 
-### 3. Object Editing (under the Select tool)
-- **Text objects**: can be moved, scaled (via control points), rotated (via the rotation handle), and have their color, font size, and opacity modified.
-- **Image objects**: can be moved, scaled, rotated, and have their opacity adjusted.
-- Once selected, the **properties panel** automatically syncs to show color, thickness, opacity, and rotation angle, supporting real-time adjustment.
-- All object modifications are recorded in **history**.
+### Layers
 
-### 4. Canvas and View Control
-- **Zoom**: scroll wheel to zoom, keeping the cursor position fixed.
-- **Pan**: Space + left-drag, or middle-button drag.
-- **Fit to window**: double-click an empty area of the canvas to reset zoom/pan.
-- **Size presets**: built-in canvas sizes (including A3/A4 and phone portrait), or custom width/height (1–8000 px).
-- **Background**: solid color (color picker or preset white) or a transparent grid background.
+* Create / delete layers, show / hide
+* Drag to reorder layers
+* Real-time layer thumbnail preview
+* Double-click layer name to rename
+* Text / image objects within a layer are listed as labels; click to select
 
-### 5. History (Undo/Redo)
-- Records layer structure, all object properties, canvas size, and background color.
-- Up to 40 steps; shortcuts **Ctrl+Z / Ctrl+Y** (Cmd on Mac).
+### Text and Image Objects (Vector, independent of the pixel layer)
 
-### 6. Export Functions
-- Supports **PNG (transparent/white/current background)**, **JPEG**, **WebP**, and **copy to clipboard** (PNG).
-- Export includes all visible layers and objects.
+* Text as independent objects: **move**, **scale**, **change color**, **rotate**, double-click to re-edit
+* Image insertion: click the toolbar button, drag a file onto the canvas, or right-click "Insert Image"
+* Control points appear when an object is selected: scale from four corners/edges, rotate via the top dot
 
-### 7. Image Insertion
-- Via the toolbar button or by dragging an image onto the canvas, it is automatically inserted at the center of the current layer (or at the drop position).
-- Supports multi-file selection.
+### Canvas
 
-### 8. Right-click Context Menu
-- Provides quick actions for copying/deleting objects, adding text, inserting images, undo/redo, layer management, and export.
+* **Custom size**, with common presets: 800×600, 1024×768, 1280×720, 1920×1080, 1080×1080, A4, A3, phone portrait
+* **Custom background color** (supports pure white, any color, transparent checkerboard)
+* Scroll-wheel zoom, space/middle-button drag to pan, double-click empty area to reset view
+* Real-time zoom ratio shown at the bottom
+
+### Export
+
+* PNG (transparent background / white background / current background color)
+* JPEG (white background)
+* WebP (transparent background)
+* Copy to clipboard
+
+### Other
+
+* **Undo / Redo** (up to 40 steps of history)
+* **Right-click menu**: insert image, add text, undo/redo, create/delete/clear layers, fit to window, quick export
+* Low-opacity ink **does not darken when overlapped** (the whole stroke is composited at once)
 
 ---
 
-## III. Technical Implementation Highlights
+## Keyboard Shortcuts
 
-### 1. Double Buffering and Temporary Stroke Compositing
-- During free drawing (brush-like strokes), strokes are first drawn on a **temporary canvas (strokeCanvas)** and composited into the layer all at once on pen-up, avoiding opacity multiplication from stacking.
-- The eraser operates directly on the layer (`destination-out`), achieving pixel-level erasing.
-
-### 2. Object System and Independent Rendering
-- Text and images are stored as **independent objects** within layers (not merged into pixels), supporting transformation and property modification, and are unaffected by layer drawing.
-- Object rendering is overlaid on top of layer pixels, preserving vector characteristics.
-
-### 3. Coordinate System and Zoom/Pan
-- All interaction coordinates are converted to **document coordinates** (accounting for DPR, zoom, and pan) to ensure precise operation.
-- The canvas display area (`vpW/vpH`) is separated from the document size (`W/H`), enabling viewport clipping and scrolling effects (via panning).
-
-### 4. Selection and Transform Handles
-- When an object is selected, **8 scale handles** and 1 rotation handle are displayed.
-- Scaling intelligently anchors the opposite corner, keeping the rotation angle unchanged (only width/height change).
-- Rotation shows the angle value in real time and syncs it to the properties panel slider.
-
-### 5. History Snapshot Mechanism
-- Each operation (drawing end, object modification, layer change, etc.) saves a complete snapshot, including the Canvas's base64 data and object parameters.
-- On restore, the Canvas and objects are rebuilt, guaranteeing a complete state rollback.
-
-### 6. UI Interaction Details
-- Tool buttons have hover tooltips.
-- Brush thickness preview: a static preview in the toolbar plus a dynamic ring that follows the cursor (size varies with zoom).
-- The top toolbar uses pill-shaped grouping for a clean appearance.
-- The layer list in the right-side panel supports drag-to-reorder.
-
-### 7. Keyboard Shortcut Support
-- Tool shortcuts: `v` (select), `p` (pen), `b` (brush), `c` (pencil), `e` (eraser), `l` (line), `r` (rectangle), `o` (ellipse), `a` (arrow), `t` (text), `i` (insert image).
-- `[` / `]` decrease/increase brush size.
-- `Delete` deletes the selected object.
-- `Ctrl+0` resets zoom.
-- Space for temporary panning.
+| Key | Function |
+| --- | -------- |
+| `V` | Select / Move |
+| `P` | Pen |
+| `B` | Brush (soft edge) |
+| `C` | Pencil |
+| `E` | Eraser |
+| `L` | Line |
+| `R` | Rectangle |
+| `O` | Ellipse |
+| `A` | Arrow |
+| `T` | Text |
+| `I` | Insert image |
+| `\[` / `]` | Decrease / increase brush size |
+| `Space` + drag | Pan canvas |
+| Middle-button drag | Pan canvas |
+| Scroll wheel | Zoom canvas |
+| `Ctrl / Cmd + Z` | Undo |
+| `Ctrl / Cmd + Y` or `Shift + Ctrl/Cmd + Z` | Redo |
+| `Ctrl / Cmd + 0` | Reset view |
+| `Delete` / `Backspace` | Delete selected object |
+| `Esc` | Close right-click menu / cancel text editing |
 
 ---
 
-## IV. Code Structure and Maintainability
-- Uses **pure JavaScript** (no third-party libraries), ES6+ syntax, clearly organized.
-- Centralized state management (the `state` object), with UI and rendering separated.
-- Uses inline SVG icons to reduce external requests.
-- Debounced window resize handling to optimize performance.
+## Usage Tips
+
+* **Insert image**: Use the image button on the toolbar, drag an image onto the canvas, or right-click on the canvas and choose "Insert Image".
+* **Edit text**: Click with the text tool on the canvas to input; double-click existing text to re-edit (Enter to confirm).
+* **Precise object adjustment**: Switch to the "Select / Move" tool, click the object then drag control points to scale, drag the top dot to rotate; a "Rotate" slider appears in the toolbar when selected.
+* **Right-click menu**: Right-click in the canvas area to bring it up; when an object is selected, "Copy" and "Delete" also appear.
 
 ---
 
-## V. Use Cases
-- A web-based simple drawing tool, usable for online meeting annotations, design drafts, and teaching demonstrations.
-- Can also serve as an image annotation tool, adding text or marks after inserting images.
-- Thanks to transparent-background support and multiple export formats, it is suitable for making memes, UI assets, and the like.
+## Technical Notes
+
+* **Single-file implementation**: HTML + CSS + native JavaScript, all inlined, no third-party dependencies.
+* **Pixel layer separated from vector objects**: Brush strokes are drawn to the layer's pixel canvas; text and images are stored as independent vector objects, allowing lossless scaling and rotation.
+* **Document / viewport decoupling**: Document size is decoupled from the display viewport; zoom and pan are achieved through the `view = {zoom, x, y}` transform, and all pointer coordinates are inversely mapped back to the document coordinate system.
+* **History snapshots**: Undo/redo serializes snapshots of layers (including pixel data and vector object properties).
+
+```
+index.html      # The application itself (single file)
+README.md       # This documentation
+```
+
+Browser compatibility: Chrome 90+ / Edge 90+ / Firefox 88+ / Safari 14+.
 
 ---
 
-## Project Screenshots
+## Screenshots
 
-![Project Screenshots](Drawing-board.png)
+![Screenshots](Drawing-board.png)
 
 ---
+
 ## License
 
 [MIT](LICENSE)
