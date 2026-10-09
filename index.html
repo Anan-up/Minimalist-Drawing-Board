@@ -487,6 +487,7 @@ function addLayer(name){
   };
   state.layers.push(layer);
   state.activeLayerId=layer.id;
+  sel=null;hideRotProp();                 // 切换活动图层时清除选中态
   return layer;
 }
 function activeLayer(){return state.layers.find(l=>l.id===state.activeLayerId);}
@@ -503,7 +504,9 @@ function renderLayersPanel(){
     row.draggable=true;
     row.addEventListener('click',e=>{
       if(e.target.closest('.mini'))return;
-      state.activeLayerId=l.id;renderLayersPanel();
+      state.activeLayerId=l.id;
+      if(sel&&sel.layer!==l){sel=null;hideRotProp();render();}   // 切到别的图层时清除选中
+      renderLayersPanel();
     });
     /* 拖拽排序 */
     row.addEventListener('dragstart',e=>{
@@ -585,13 +588,18 @@ function renderLayersPanel(){
     eye.className='mini'+(l.visible?'':' off');
     eye.innerHTML=svg(l.visible?'eye':'eyeOff');
     eye.title='显示/隐藏';
-    eye.onclick=()=>{l.visible=!l.visible;renderLayersPanel();render();pushHistory();};
+    eye.onclick=()=>{
+      l.visible=!l.visible;
+      if(!l.visible&&sel&&sel.layer===l){sel=null;hideRotProp();}   // 隐藏图层时清除其选中
+      renderLayersPanel();render();pushHistory();
+    };
     const del=document.createElement('button');
     del.className='mini';del.innerHTML=svg('trash');del.title='删除图层';
     del.onclick=()=>{
       if(state.layers.length<=1){showHint('至少保留一个图层');return;}
       state.layers=state.layers.filter(x=>x.id!==l.id);
       if(state.activeLayerId===l.id)state.activeLayerId=state.layers[state.layers.length-1].id;
+      if(sel&&sel.layer===l){sel=null;hideRotProp();}   // 删除的正是选中对象所在图层
       renderLayersPanel();render();pushHistory();
     };
     btns.appendChild(eye);btns.appendChild(del);
@@ -746,6 +754,11 @@ canvas.addEventListener('pointerup',e=>{
   }
 });
 canvas.addEventListener('pointerleave',()=>{if(drawing&&!freehand){/* keep */}pointerOver=false;brushCursor.style.display='none';});
+canvas.addEventListener('pointercancel',()=>{       // 指针被系统取消时收尾，避免卡在绘制态
+  if(panning){panning=false;canvas.style.cursor=spaceDown?'grab':'';return;}
+  if(freehand){endFreehand();freehand=false;drawing=false;pushHistory();render();}
+  else if(drawing){drawing=false;preview=null;render();}
+});
 
 /* ---------- 滚轮缩放 / 双击复位 ---------- */
 function clamp(v,a,b){return Math.min(b,Math.max(a,v));}
@@ -842,8 +855,15 @@ function placeText(p){
   sel={layer:l,obj:t,kind:'text'};
   openTextEditor(t,l,true);
 }
+let activeTextInput=null;
 function openTextEditor(t,l,isNew){
+  /* 先收尾上一个编辑器（触发其 blur 提交逻辑），避免多个输入框叠加 */
+  if(activeTextInput&&activeTextInput.isConnected){
+    const prev=activeTextInput;activeTextInput=null;
+    prev.blur();
+  }
   const input=document.createElement('input');
+  activeTextInput=input;
   input.type='text';input.className='text-input';input.value=t.text;
   const sz=Math.max(12,(t.size/dpr)*view.zoom);
   input.style.fontSize=sz+'px';
@@ -857,17 +877,19 @@ function openTextEditor(t,l,isNew){
   let done=false;
   const finish=(keep)=>{
     if(done)return;done=true;
+    if(activeTextInput===input)activeTextInput=null;
     const val=input.value;
-    if(!val.trim()){l.texts=l.texts.filter(x=>x!==t);sel=null;}
+    if(!val.trim()){l.texts=l.texts.filter(x=>x!==t);if(sel&&sel.obj===t)sel=null;}
     else{t.text=val;const b=textBox(t);t.w=b.w;t.h=b.h;pushHistory();}
-    input.remove();render();renderLayersPanel();
+    if(input.isConnected)input.remove();   // 可能已被外部移除
+    render();renderLayersPanel();
   };
   input.addEventListener('blur',()=>finish(true));
   input.addEventListener('input',()=>{t.text=input.value;const b=textBox(t);t.w=b.w;t.h=b.h;render();});
   input.addEventListener('keydown',e=>{
     e.stopPropagation();
-    if(e.key==='Enter'){e.preventDefault();input.blur();}
-    if(e.key==='Escape'){if(!t.text.trim()){l.texts=l.texts.filter(x=>x!==t);sel=null;input.remove();render();}done=true;}
+    if(e.key==='Enter'){e.preventDefault();input.blur();return;}
+    if(e.key==='Escape'){e.preventDefault();finish(true);}   // 统一走收尾：空文本丢弃，有内容则提交
   });
 }
 
@@ -957,7 +979,6 @@ function selectDown(p){
   if(hit){sel=hit;dragMode='move';dragOffset={x:p.x-hit.obj.x,y:p.y-hit.obj.y};syncPanelFromSel(hit.obj);renderLayersPanel();}
   else{sel=null;hideRotProp();}
   render();
-  try{canvas.setPointerCapture(e.pointerId);}catch(_){}
 }
 function selectMove(p){
   if(!sel||!dragMode)return;
@@ -1090,6 +1111,7 @@ function restore(snap){
   state.layers=newLayers;
   state.activeLayerId=snap.activeLayerId;
   state.bg=snap.bg;
+  sel=null;hideRotProp();dragMode=null;activeHandle=null;   // 历史快照重建了所有对象，旧引用失效
   canvasWrap.classList.toggle('transparent',state.bg==='transparent');
   updateBgUI();
   resizeViewport();fitView();updateSizeUI();
